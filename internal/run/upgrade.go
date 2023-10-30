@@ -27,6 +27,8 @@ type Upgrade struct {
 	certs           *repoCerts
 	createNamespace bool
 	skipCrds        bool
+	kubeconfig      string
+	kubecontext     string
 
 	cmd cmd
 }
@@ -52,6 +54,8 @@ func NewUpgrade(cfg env.Config) *Upgrade {
 		certs:           newRepoCerts(cfg),
 		createNamespace: cfg.CreateNamespace,
 		skipCrds:        cfg.SkipCrds,
+		kubeconfig:      cfg.KubeConfig,
+		kubecontext:     cfg.KubeContext,
 	}
 }
 
@@ -108,9 +112,14 @@ func (u *Upgrade) Prepare() error {
 	if u.skipCrds {
 		args = append(args, "--skip-crds")
 	}
+	if u.kubecontext != "" {
+		args = append(args, fmt.Sprintf("--kube-context=%s", u.kubecontext))
+	}
+
 	for _, vFile := range u.valuesFiles {
 		args = append(args, "--values", vFile)
 	}
+
 	args = append(args, u.certs.flags()...)
 
 	// always set --history-max since it defaults to non-zero value

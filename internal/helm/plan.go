@@ -3,9 +3,10 @@ package helm
 import (
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/pelotech/drone-helm3/internal/run"
-	"os"
 )
 
 const (
@@ -54,6 +55,7 @@ func NewPlan(cfg env.Config) (*Plan, error) {
 // determineSteps is primarily for the tests' convenience: it allows testing the "which stuff should
 // we do" logic without building a config that meets all the steps' requirements.
 func determineSteps(cfg env.Config) *func(env.Config) []Step {
+
 	switch cfg.Command {
 	case "upgrade":
 		return &upgrade

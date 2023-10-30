@@ -58,6 +58,8 @@ type Config struct {
 	CleanupOnFail      bool     `envconfig:"cleanup_failed_upgrade"` // Pass --cleanup-on-fail to `helm upgrade`
 	LintStrictly       bool     `split_words:"true"`                 // Pass --strict to `helm lint`
 	SkipCrds           bool     `split_words:"true"`                 // Pass --skip-crds to `helm upgrade`
+	KubeConfig         string   `envconfig:"kube_config"`            // Kubeconfig with cluster details and certificates
+	KubeContext        string   `envconfig:"kube_context"`           // Kube context to deploy the helm
 
 	Stdout io.Writer `ignored:"true"`
 	Stderr io.Writer `ignored:"true"`
@@ -104,6 +106,12 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		}
 	}
 
+	if cfg.KubeConfig != "" {
+		if cfg.KubeContext == "" {
+			fmt.Fprintf(cfg.Stderr, "Warning: Kubeconfig is set but context is empty. This may result in error. The following kubeconfig-related settings will be ignored: kube_config, kube_certificate, kube_api_server, kube_service_account, skip_tls_verify")
+		}
+	}
+
 	if justNumbers.MatchString(cfg.Timeout) {
 		cfg.Timeout = fmt.Sprintf("%ss", cfg.Timeout)
 	}
@@ -147,6 +155,9 @@ func (cfg *Config) loadValuesSecrets() {
 func (cfg Config) logDebug() {
 	if cfg.KubeToken != "" {
 		cfg.KubeToken = "(redacted)"
+	}
+	if cfg.KubeConfig != "" {
+		cfg.KubeConfig = "(redacted)"
 	}
 	fmt.Fprintf(cfg.Stderr, "Generated config: %+v\n", cfg)
 }
